@@ -2,7 +2,7 @@
 
 from flask import Flask, request, render_template, redirect, flash, session
 from flask_debugtoolbar import DebugToolbarExtension
-from models import db, connect_db, User
+from models import db, connect_db, User, Post
 
 app = Flask(__name__)
 
@@ -20,6 +20,7 @@ db.create_all()
 def show_users():
     return redirect('/users')
 
+##### User routes #####
 @app.route('/users')
 def list_users():
     """Shows list of all users in db"""
@@ -78,3 +79,62 @@ def delete_user(user_id):
     db.session.commit()
 
     return redirect('/users')
+
+##### Post routes #####
+@app.route('/users/<int:user_id>/posts/new')
+def show_add_post_form(user_id):
+    """Show the Add New Post form"""
+    user = User.query.get_or_404(user_id)
+    return render_template('new-post.html', user = user)
+
+@app.route('/users/<int:id>/posts/new', methods=['POST'])
+def add_new_post(id):
+    """Add new post"""
+    user = User.query.get_or_404(id)
+    
+    title = request.form['title']
+    content = request.form['content']
+
+    new_post = Post(title=title, content=content, user_id=id)
+
+    db.session.add(new_post)
+    db.session.commit()
+    flash(f'Post {new_post.title} successfully added')
+    posts = Post.query.filter_by(user_id = id).all()
+
+    return redirect(f'/users/{id}')
+
+@app.route('/posts/<int:post_id>')
+def show_post(post_id):
+    """Show a post"""
+    post = Post.query.get_or_404(post_id)
+    return render_template('post.html', post = post)
+
+@app.route("/posts/<int:post_id>/edit")
+def show_edit_post_form(post_id):
+    """Go to edit page for post"""
+    post = Post.query.get_or_404(post_id)
+
+    return render_template('edit-post.html', post = post)
+
+@app.route("/posts/<int:post_id>/edit", methods=['POST'])
+def edit_post(post_id):
+    """Edit post"""
+    post = Post.query.get_or_404(post_id)
+
+    post.title = request.form['title']
+    post.content = request.form['content']
+
+    db.session.add(post)
+    db.session.commit()
+    flash(f'Post {post.title} successfully edited')
+    return redirect(f'/users/{post.user_id}')
+
+@app.route('/posts/<int:post_id>/delete', methods=['POST'])
+def delete_post(post_id):
+    post = Post.query.get_or_404(post_id)
+
+    db.session.delete(post)
+    db.session.commit()
+    flash(f'Post {post.title} successfully deleted')
+    return redirect(f'/users/{post.user_id}')

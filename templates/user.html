@@ -9,4 +9,26 @@
     <form action="/users/{{user.id}}/delete" method="POST">
         <button>Delete</button>
     </form>
+
+    {% with msgs = get_flashed_messages() %}
+    {% if msgs %}
+    {% for msg in msgs %}
+    <p class='flash'>{{msg}}</p>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    {% if not user.posts %}
+    <strong>{{user.first_name}} has not added any posts yet. Check back soon or get them started!</strong>
+    {% else %}
+    <h2>Posts</h2>
+    <ul>
+        {% for post in user.posts %}
+        <li><a href="/posts/{{post.id}}">{{post.title}}</a></li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    <form action="/users/{{user.id}}/posts/new">
+        <button>Add Post</button>
+    </form>
 {% endblock %}
