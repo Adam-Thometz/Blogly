@@ -2,7 +2,11 @@
 {% block title %}{{user.first_name}} {{user.last_name}}{% endblock %}
 {% block content %}
     <h1>{{user.get_full_name()}}</h1>
+    
+    {% if user.image_url %}
     <img src="{{user.image_url}}" alt="Picture of {{user.first_name}} {{user.last_name}}" width="200" height="200">
+    {% endif %}
+
     <form action="/users/{{user.id}}/edit">
         <button>Edit</button>
     </form>
